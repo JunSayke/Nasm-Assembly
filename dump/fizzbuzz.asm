@@ -66,7 +66,7 @@ nextNumber:
     mov  byte [buffer+1], 0
     push buffer
     call write
-    cmp  ecx,             dword [txtInput] ; compare if our counter is equal to to our input
+    cmp  ecx,             dword [txtInput] ; compare if our counter is equal to our input
     jne  nextNumber                        ; if not equal jump to the start of the loop
 
 exit:
