@@ -9,10 +9,8 @@ global  _start
 
 _start:
     ; Your code here
-    mov eax,      [num]
-    mov [buffer], eax
-
     push buffer
+    push dword [num]
     call itoa
     
     mov eax, 4
@@ -35,7 +33,6 @@ itoa:
     push edx
 
     mov eax, [ebp+8]
-    mov eax, [eax]
     mov ebx, 10
     xor ecx, ecx
 
@@ -50,7 +47,7 @@ itoa:
     jmp  .itoa_next_int
 
 .itoa_reverse:
-    mov eax,              dword [ebp+8]
+    mov eax,              dword [ebp+12]
     mov byte [eax],       48
     mov byte [eax+ecx+1], 0h
     cmp ecx,              0h
@@ -68,4 +65,4 @@ itoa:
     pop ebx
     pop eax
     pop ebp
-    ret
+    ret 4
