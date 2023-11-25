@@ -28,8 +28,9 @@ _start:        ; tell linker entry point
     ; comparing which is greater between num1 and num2
     mov eax, [dta_num1]
     mov ebx, [dta_num2]
+debug:
     cmp eax, ebx
-    jg  _greater        ; jumps to _greater if num1 is greater than num2
+    jg  _greater ; jumps to _greater if num1 is greater than num2
 
 ; num1 is less than num2
     mov [dta_largest],  ebx
@@ -88,8 +89,8 @@ section .data
     lbl_smallest db  10, "The smallest digit is "
     len_smallest equ $-lbl_smallest
 
-    dta_num1 dd "6"
-    dta_num2 dd "1"
+    dta_num1 db "42", 0
+    dta_num2 db "47", 0
 
 section .bss
     dta_largest  resb 2
