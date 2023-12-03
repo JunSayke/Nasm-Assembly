@@ -47,14 +47,8 @@ itoa:
     push edx
 
     mov eax, [ebp+8] ; Load the integer into eax
-
-    ; Reset the buffer
-    mov ebx,   [ebp+12] ; Load the address of the buffer into ebx
-    mov ecx,   0        ; Initialize digit counter
-    mov [ebx], ecx      ; Set the first byte of the buffer to 0 (null terminator)
-
-    mov ebx, 10  ; Set divisor for division
-    xor ecx, ecx ; Clear digit counter
+    mov ebx, 10      ; Set divisor for division
+    xor ecx, ecx     ; Clear digit counter
 
 .itoa_next_int:
     xor  edx, edx       ; Clear edx before division
@@ -69,7 +63,7 @@ itoa:
 .itoa_reverse:
     mov eax,              [ebp+12] ; Load the buffer address into eax
     mov byte [eax],       48       ; Set the first byte to '0'
-    mov byte [eax+ecx+1], 0h       ; Null-terminate the string
+    mov byte [eax+ecx-1], 0h       ; Null-terminate the string
     cmp ecx,              0        ; Check if there are any digits
     je  .itoa_done                 ; If no digits, exit
 
@@ -111,43 +105,43 @@ slen:
 ; Function: write - Write a string to the standard output
 
 write:
-    push ebp                ; Save base pointer
-    mov  ebp, esp           ; Set up base pointer
-    push eax                ; Preserve registers
+    push ebp           ; Save base pointer
+    mov  ebp, esp      ; Set up base pointer
+    push eax           ; Preserve registers
     push ebx
     push ecx
     push edx
-    push dword [ebp+8]      ; Push the address of the string argument
-    call slen               ; Call the slen function to get the length of the string
-    pop  edx                ; Pop the length into edx
-    mov  eax, 4             ; System call number for write
-    mov  ebx, 1             ; File descriptor for standard output
-    mov  ecx, dword [ebp+8] ; Load the address of the string into ecx
-    int  80h                ; Invoke the system call to write the string to the standard output
-    pop  edx                ; Restore registers
+    push dword [ebp+8] ; Push the address of the string argument
+    call slen          ; Call the slen function to get the length of the string
+    pop  edx           ; Pop the length into edx
+    mov  eax, 4        ; System call number for write
+    mov  ebx, 1        ; File descriptor for standard output
+    mov  ecx, [ebp+8]  ; Load the address of the string into ecx
+    int  80h           ; Invoke the system call to write the string to the standard output
+    pop  edx           ; Restore registers
     pop  ecx
     pop  ebx
     pop  eax
-    pop  ebp                ; Restore base pointer
-    ret  4                  ; Return, removing the string argument from the stack
+    pop  ebp           ; Restore base pointer
+    ret  4             ; Return, removing the string argument from the stack
 
 ; Function: read - Read input from standard input into a buffer
 
 read:
-    push ebp                 ; Save base pointer
-    mov  ebp, esp            ; Set up base pointer
-    push eax                 ; Preserve registers
+    push ebp           ; Save base pointer
+    mov  ebp, esp      ; Set up base pointer
+    push eax           ; Preserve registers
     push ebx
     push ecx
     push edx
-    mov  eax, 3              ; System call number for read
-    mov  ebx, 0              ; File descriptor for standard input
-    mov  ecx, dword [ebp+12] ; Load the address of the buffer into ecx
-    mov  edx, dword [ebp+8]  ; Load the number of bytes to read into edx
-    int  80h                 ; Invoke the system call to read input from standard input
-    pop  edx                 ; Restore registers
+    mov  eax, 3        ; System call number for read
+    mov  ebx, 0        ; File descriptor for standard input
+    mov  ecx, [ebp+12] ; Load the address of the buffer into ecx
+    mov  edx, [ebp+8]  ; Load the number of bytes to read into edx
+    int  80h           ; Invoke the system call to read input from standard input
+    pop  edx           ; Restore registers
     pop  ecx
     pop  ebx
     pop  eax
-    pop  ebp                 ; Restore base pointer
-    ret  8                   ; Return, removing the buffer and size arguments from the stack
+    pop  ebp           ; Restore base pointer
+    ret  8             ; Return, removing the buffer and size arguments from the stack
