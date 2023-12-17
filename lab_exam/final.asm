@@ -5,88 +5,194 @@ section .data
     lblHeader: db "CIT-U", 10
                 db "Parking Management System", 10
                 db "Programmer: Antonio M. Ubaldo Jr.", 10
-                db "Date Stamp: 03/12/2023", 10, 0
-    lblMenu: db 10, "Main Menu", 10
+                db "Date Stamp: 03/12/2023", 0
+    lblMenu: db 10, "| Main Menu |", 10
                 db "1. Display Vacant Slots", 10
                 db "2. Park a Car", 10
                 db "3. Open Slot", 10
                 db "4. Exit Program", 10
                 db "Enter your choice: ", 0
-    lblSlots:   db "Vacant Slots", 10, 0
-    lblPark:    db "Park a Car", 10, 0
-    lblLeave:   db "Open Slot", 10, 0
-    lblFull:    db "PARKING IS FULL", 10, 0
-    lblErr:     db "ERROR! Invalid choice!", 10, 0
-    lblExit:    db "Thank you for using our Parking Management System. Have a great Day!", 10, 0
-    txtFeeRate: db 30
-    txtSlots: times 10 db 0
-    ; txtSlots:   db  0, 0, 0, 0, 1, 0, 1, 0, 1, 0
-    lenSlots: equ $-txtSlots
+    lblParkOn:   db "Parked on Slot ", 0
+    lblOpenOn:   db "Open on Slot ", 0
+    lblOccupied: db "Occupied", 0
+    lblVacant:   db "Vacant", 0
+    lblSlots:    db ".", 10, "| Vacant Slots |", 0
+    lblPark:     db ".", 10, "| Park a Car |", 0
+    lblOpen:     db ".", 10, "| Open Slot |", 0
+        lblHours: db "Enter number of hours: ", 0
+    lblBill:  db "Total Bill: ", 0
+    lblFull:  db "PARKING IS FULL", 0
+    lblEmpty: db "PARKING IS EMPTY", 0
+    lblErr:   db "ERROR! Invalid choice!", 0
+    lblExit:  db "Thank you for using our Parking Management System. Have a great Day!", 0
+    feeRate:  db 30
+    slots: times 10 dd 0
+    lenSlots: db 10
 
 section .bss
     ; Declare your uninitialize variables here
     buffer: resb 255
-    txtOp:  resb 255
-    txtFee: resb 255
+    op:     resb 1
 
 section .text
-global  _start
+    global _start
 
 _start:
-    ; Your code here
-    mov ecx, 1
-    mov eax, txtSlots
-l1:
-    movzx ebx, byte [eax+ecx-1]
-    push  buffer
-    push  ebx
-    call  itoa
-    call  write
+    push lblHeader
+    call println
 
-    mov  byte [buffer],   " "
-    mov  byte [buffer+1], 0
-    push buffer
-    call write
+menu:
+    push lblMenu
+    call print
+
+    push op
+    call scan
+
+    push op
+    call atoi
+    pop  dword [op]
+
+    jmp exeOp
+ 
+invalid:
+    push lblErr
+    call println
+    jmp  menu
+
+exeOp:
+    movzx eax, byte [op]
+    cmp   al,  1
+    jl    invalid
+    cmp   al,  4
+    jg    invalid
     
-    cmp ecx, lenSlots
-    je  exit
-    inc ecx
-    jmp l1
+    cmp al, 1
+    je  display
+    cmp al, 2
+    je  park
+    cmp al, 3
+    je  open
 
+    jmp exit
 
-; exeOp:
-;     push txtOp
-;     call atoi
-;     pop  eax
-;     cmp  al, 1
-;     jl   invalid
-;     cmp  al, 4
-;     jg   invalid
-;     cmp  al, 1
-;     je   slots
-;     cmp  al, 2
-;     je   park
-;     cmp  al, 3
-;     je   leave
-;     call exit
+display:    
+    push lblSlots
+    call println
 
-; invalid:
-;     push lblErr
-;     call write
-;     ret
+    mov   ebx, 1
+    movzx ecx, byte [lenSlots]
 
-; slots:
+.display_loop:
+    mov eax, dword [slots+(ebx-1)*4]
 
-; park:
+    push buffer
+    push ebx
+    call itoa
+    call print
 
-; leave:
+    push ". "
+    call printval
 
-; doneOp:
-;     ret
+    cmp  eax, 0
+    je   .display_vacant
+    push lblOccupied
+    jmp  .display_next
+
+.display_vacant:
+    push lblVacant
+
+.display_next:
+    call println
+    inc  ebx
+    loop .display_loop
+
+.display_done:
+    jmp menu
+
+park:
+    push lblPark
+    call println
+    
+    mov   ebx, 1
+    movzx ecx, byte [lenSlots]
+ 
+.park_loop:
+    mov  eax, [slots+(ebx-1)*4]
+    cmp  eax, 0
+    je   .park_it
+    inc  ebx
+    loop .park_loop
+
+    push lblFull
+    call println
+    jmp  .park_done
+
+.park_it:
+    push lblHours
+    call print
+
+    push buffer
+    call scan
+
+    push buffer
+    call atoi
+    pop  dword [slots+(ebx-1)*4]
+
+    push lblParkOn
+    call print
+
+    push buffer
+    push ebx
+    call itoa
+    call println
+
+.park_done:
+    jmp menu
+   
+open:
+    push lblOpen
+    call println
+
+    mov   ebx, 1
+    movzx ecx, byte [lenSlots]
+
+.open_loop:
+    mov  eax, dword [slots+(ebx-1)*4]
+    cmp  eax, 0
+    jne  .open_slot
+    inc  ebx
+    loop .open_loop
+    
+    push lblEmpty
+    call println
+    jmp  .open_done
+
+.open_slot:
+    push lblOpenOn
+    call print
+
+    push buffer
+    push ebx
+    call itoa
+    call println
+
+    mov dword [slots+(ebx-1)*4], 0
+
+    push lblBill
+    call print
+
+    mul  dword [feeRate]
+    push buffer
+    push eax
+    call itoa
+    call println
+
+.open_done:
+    jmp menu
 
 exit:
     push lblExit
-    call write
+    call println
 
     ; Exit the program
     mov eax, 1
